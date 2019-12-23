@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="inputstream.ffmpegarchive"
-  version="2.0.6"
+  version="1.0.0"
   name="FFmpeg Archive Input"
   provider-name="phunkyfish">
   <requires>@ADDON_DEPENDS@</requires>
   <extension
     point="kodi.inputstream"
     name="ffmpegarchive"
+    extension=""
+    tags="true"
+    listitemprops="mimetype|isrealtimestream|property"
     library_@PLATFORM@="@LIBRARY_FILENAME@" />
   <extension point="xbmc.addon.metadata">
     <summary lang="en">InputStream Client for FFmpeg Archive streams</summary>
