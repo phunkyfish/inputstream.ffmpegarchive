@@ -111,6 +111,8 @@ externalproject_add(ffmpeg
                       --enable-encoder=png
                       --enable-encoder=mjpeg
                       --enable-gnutls
+                      --enable-demuxer=dash
+                      --enable-libxml2
                       --enable-libzvbi
                       ${ffmpeg_conf})
 
