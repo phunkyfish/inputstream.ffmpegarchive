@@ -25,6 +25,9 @@ public:
   virtual int64_t LengthStream() override;
   virtual bool GetTimes(INPUTSTREAM_TIMES& times) override;
 
+  virtual bool CanPauseStream() override;
+  virtual bool CanSeekStream() override;
+
 protected:
   void UpdateCurrentPTS() override;
 

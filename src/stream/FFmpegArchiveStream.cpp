@@ -199,3 +199,13 @@ void FFmpegArchiveStream::UpdateCurrentPTS()
   if (m_currentPts != DVD_NOPTS_VALUE)
     m_currentPts += m_seekOffset;
 }
+
+bool FFmpegArchiveStream::CanPauseStream()
+{
+  return true;
+}
+
+bool FFmpegArchiveStream::CanSeekStream()
+{
+  return true;
+}
