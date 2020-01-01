@@ -48,27 +48,58 @@ CInputStreamArchive::~CInputStreamArchive()
 bool CInputStreamArchive::Open(INPUTSTREAM& props)
 {
   kodi::Log(ADDON_LOG_NOTICE, "InputStream.ffmpegarchive: OpenStream()");
+  std::string tempString;
 
   for (size_t i = 0; i < props.m_nCountInfoValues; ++i)
   {
-    if (MIMETYPE == props.m_ListItemProperties[i].m_strKey)
+    kodi::Log(ADDON_LOG_NOTICE, "InputStream.ffmpegarchive property: %s = %s", props.m_ListItemProperties[i].m_strKey, props.m_ListItemProperties[i].m_strValue);
+
+    if (MIME_TYPE == props.m_ListItemProperties[i].m_strKey)
     {
       m_mimeType = props.m_ListItemProperties[i].m_strValue;
     }
-    else if (PROGRAM_PROP == props.m_ListItemProperties[i].m_strKey)
+    else if (PROGRAM_NUMBER == props.m_ListItemProperties[i].m_strKey)
     {
       m_programProperty = props.m_ListItemProperties[i].m_strValue;
     }
-    else if (ISREALTIMESTREAM == props.m_ListItemProperties[i].m_strKey)
+    else if (IS_REALTIME_STREAM == props.m_ListItemProperties[i].m_strKey)
     {
       m_isRealTimeStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
+    }
+    else if (IS_ARCHIVE_STREAM == props.m_ListItemProperties[i].m_strKey)
+    {
+      m_isArchiveStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
+    }
+    else if (PLAYBACK_AS_LIVE == props.m_ListItemProperties[i].m_strKey)
+    {
+      m_playbackAsLive = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
+    }
+    else if (CATCHUP_START_TIME == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_catchupStartTime = static_cast<time_t>(std::stoll(tempString));
+    }
+    else if (CATCHUP_END_TIME == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_catchupEndTime = static_cast<time_t>(std::stoll(tempString));
+    }
+    else if (TIMESHIFT_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_timeshiftBufferStartTime = static_cast<time_t>(std::stoll(tempString));
+    }
+    else if (TIMESHIFT_BUFFER_OFFSET == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_timeshiftBufferOffset = std::stoll(tempString);
     }
   }
 
   m_streamUrl = props.m_strURL;
 
   if (m_isArchiveStream)
-    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this));
+    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this), m_playbackAsLive, m_catchupStartTime, m_catchupEndTime, m_timeshiftBufferStartTime, m_timeshiftBufferOffset);
   else
     m_stream = std::make_shared<FFmpegStream>(static_cast<IManageDemuxPacket*>(this));
 

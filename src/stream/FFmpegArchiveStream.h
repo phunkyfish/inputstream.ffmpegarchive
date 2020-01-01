@@ -13,7 +13,12 @@
 class FFmpegArchiveStream : public FFmpegStream
 {
 public:
-  FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager);
+  FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
+                      time_t playbackAsLive,
+                      time_t catchupStartTime,
+                      time_t catchupEndTime,
+                      time_t timeshiftBufferStartTime,
+                      long long timeshiftBufferOffset);
   ~FFmpegArchiveStream();
 
   virtual bool Open(const std::string& streamUrl, const std::string& mimeType, bool isRealTimeStream, const std::string& programProperty) override;
@@ -35,9 +40,7 @@ protected:
   time_t m_catchupEndTime = 0;
   time_t m_timeshiftBufferStartTime = 0;
   long long m_timeshiftBufferOffset = 0;
-  bool m_resetCatchupState = false;
-  bool m_playbackIsVideo = false;
-  bool m_fromEpgTag = false;
+  bool m_playbackAsLive = false;
 
   bool m_bIsOpening;
   double m_seekOffset;

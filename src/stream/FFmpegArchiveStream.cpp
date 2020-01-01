@@ -47,8 +47,15 @@ extern "C" {
 * InputSteam Client AddOn specific public library functions
 ***********************************************************/
 
-FFmpegArchiveStream::FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager)
-  : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0)
+FFmpegArchiveStream::FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
+                                         time_t playbackAsLive,
+                                         time_t catchupStartTime,
+                                         time_t catchupEndTime,
+                                         time_t timeshiftBufferStartTime,
+                                         long long timeshiftBufferOffset)
+  : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0), m_playbackAsLive(playbackAsLive),
+    m_catchupStartTime(catchupStartTime),m_catchupEndTime(catchupEndTime),
+    m_timeshiftBufferStartTime(timeshiftBufferStartTime), m_timeshiftBufferOffset(timeshiftBufferOffset)
 {
 }
 
@@ -181,10 +188,10 @@ bool FFmpegArchiveStream::GetTimes(INPUTSTREAM_TIMES& times)
   const time_t dateTimeNow = time(0);
 
   times.startTime = m_timeshiftBufferStartTime;
-  if (m_playbackIsVideo)
-    times.ptsEnd = static_cast<int64_t>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
-  else // it's live!
+  if (m_playbackAsLive)
     times.ptsEnd = static_cast<int64_t>(dateTimeNow - times.startTime) * DVD_TIME_BASE;
+  else // it's like a video!
+    times.ptsEnd = static_cast<int64_t>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
 
   // Log(LOGLEVEL_NOTICE, "GetStreamTimes - Ch = %u \tTitle = \"%s\" \tepgTag->startTime = %ld \tepgTag->endTime = %ld",
   //           m_programmeUniqueChannelId, m_programmeTitle.c_str(), m_catchupStartTime, m_catchupEndTime);

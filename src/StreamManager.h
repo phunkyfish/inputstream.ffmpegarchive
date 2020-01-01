@@ -17,9 +17,15 @@
 
 #include <kodi/addon-instance/Inputstream.h>
 
-static const std::string MIMETYPE = "inputstream.ffmpegarchive.mimetype";
-static const std::string PROGRAM_PROP = "inputstream.ffmpegarchive.program";
-static const std::string ISREALTIMESTREAM = "inputstream.ffmpegarchive.isrealtimestream";
+static const std::string MIME_TYPE = "inputstream.ffmpegarchive.mime_type";
+static const std::string PROGRAM_NUMBER = "inputstream.ffmpegarchive.program_number";
+static const std::string IS_REALTIME_STREAM = "inputstream.ffmpegarchive.is_realtime_stream";
+static const std::string IS_ARCHIVE_STREAM = "inputstream.ffmpegarchive.is_archive_stream";
+static const std::string PLAYBACK_AS_LIVE = "inputstream.ffmpegarchive.playback_as_live";
+static const std::string CATCHUP_START_TIME = "inputstream.ffmpegarchive.catchup_start_time";
+static const std::string CATCHUP_END_TIME = "inputstream.ffmpegarchive.catchup_end_time";
+static const std::string TIMESHIFT_BUFFER_START_TIME = "inputstream.ffmpegarchive.timeshift_buffer_start_time";
+static const std::string TIMESHIFT_BUFFER_OFFSET = "inputstream.ffmpegarchive.timeshift_buffer_offset";
 
 class CInputStreamArchive
   : public kodi::addon::CInstanceInputStream, IManageDemuxPacket
@@ -77,6 +83,12 @@ private:
   bool m_isRealTimeStream;
   bool m_opened;
   bool m_isArchiveStream = false;
+
+  time_t m_catchupStartTime = 0;
+  time_t m_catchupEndTime = 0;
+  time_t m_timeshiftBufferStartTime = 0;
+  long long m_timeshiftBufferOffset = 0;
+  bool m_playbackAsLive = false;
 
   int m_videoWidth;
   int m_videoHeight;

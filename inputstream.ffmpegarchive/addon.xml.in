@@ -10,7 +10,7 @@
     name="ffmpegarchive"
     extension=""
     tags="true"
-    listitemprops="mimetype|isrealtimestream|property"
+    listitemprops="mime_type|program_number|is_realtime_stream|is_archive_stream|playback_as_live|catchup_start_time|catchup_end_time|timeshift_buffer_start_time|timeshift_buffer_offset"
     library_@PLATFORM@="@LIBRARY_FILENAME@" />
   <extension point="xbmc.addon.metadata">
     <summary lang="en">InputStream Client for FFmpeg Archive streams</summary>
