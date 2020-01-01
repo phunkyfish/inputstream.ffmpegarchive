@@ -18,7 +18,7 @@
 #include <kodi/addon-instance/Inputstream.h>
 
 static const std::string MIMETYPE = "inputstream.ffmpegarchive.mimetype";
-static const std::string PROGRAM_PROP = "inputstream.ffmpegarchive.property";
+static const std::string PROGRAM_PROP = "inputstream.ffmpegarchive.program";
 static const std::string ISREALTIMESTREAM = "inputstream.ffmpegarchive.isrealtimestream";
 
 class CInputStreamArchive
