@@ -121,9 +121,9 @@ void FFmpegArchiveStream::GetCapabilities(INPUTSTREAM_CAPABILITIES& caps)
 {
   kodi::Log(ADDON_LOG_DEBUG, "GetCapabilities()");
   caps.m_mask = INPUTSTREAM_CAPABILITIES::SUPPORTS_IDEMUX |
-    INPUTSTREAM_CAPABILITIES::SUPPORTS_IDISPLAYTIME |
+    // INPUTSTREAM_CAPABILITIES::SUPPORTS_IDISPLAYTIME |
     INPUTSTREAM_CAPABILITIES::SUPPORTS_ITIME |
-    INPUTSTREAM_CAPABILITIES::SUPPORTS_IPOSTIME |
+    // INPUTSTREAM_CAPABILITIES::SUPPORTS_IPOSTIME |
     INPUTSTREAM_CAPABILITIES::SUPPORTS_SEEK |
     INPUTSTREAM_CAPABILITIES::SUPPORTS_PAUSE;
 // #if INPUTSTREAM_VERSION_LEVEL > 1
@@ -226,3 +226,28 @@ bool FFmpegArchiveStream::CanSeekStream()
 {
   return true;
 }
+
+// bool FFmpegArchiveStream::PosTime(int ms)
+// {
+//   double temp = 0;
+//   return DemuxSeekTime(static_cast<double>(ms) * 0.001f, false, temp);
+// }
+
+// int FFmpegArchiveStream::GetTotalTime()
+// {
+//   // if (m_pFormatContext->duration)
+//   //   return static_cast<int>(m_pFormatContext->duration / AV_TIME_BASE * 1000);
+//   // else
+//   //   return std::time(nullptr) - static_cast<int>(m_startTime);
+
+// //  return 145 * 60;
+//   //return 25 * 60;
+//   return std::time(nullptr) - static_cast<int>(m_timeshiftBufferStartTime) * 1000;
+// }
+
+// int FFmpegArchiveStream::GetTime()
+// {
+//   return std::time(nullptr) - static_cast<int>(m_timeshiftBufferStartTime) * 1000;
+//   //return static_cast<int>(m_currentPts / DVD_TIME_BASE * 1000);
+//   //return 16 * 60;//static_cast<int>(m_currentPts / DVD_TIME_BASE * 1000);
+// }
