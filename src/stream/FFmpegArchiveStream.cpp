@@ -133,7 +133,7 @@ void FFmpegArchiveStream::GetCapabilities(INPUTSTREAM_CAPABILITIES& caps)
 
 int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET */)
 {
-  long long ret = -1;
+  int64_t ret = -1;
   if (m_catchupStartTime > 0)
   {
     Log(LOGLEVEL_NOTICE, "SeekLiveStream - iPosition = %lld, iWhence = %d", position, whence);
@@ -160,7 +160,7 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
       break;
       case SEEK_CUR:
       {
-        long long offset = m_timeshiftBufferOffset;
+        int64_t offset = m_timeshiftBufferOffset;
         //Log(LOGLEVEL_NOTICE, "SeekLiveStream - timeNow = %d, startTime = %d, iTvgShift = %d, offset = %d", timeNow, m_catchupStartTime, m_programmeChannelTvgShift, offset);
         ret = offset * DVD_TIME_BASE;
       }
@@ -175,11 +175,17 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
 
 int64_t FFmpegArchiveStream::LengthStream()
 {
-  long long ret = -1;
-  Log(LOGLEVEL_NOTICE, "LengthLiveStream");
+  int64_t length = -1;
   if (m_catchupStartTime > 0 && m_catchupEndTime >= m_catchupStartTime)
-    ret = (m_catchupEndTime - m_catchupStartTime) * DVD_TIME_BASE;
-  return ret;
+  {
+    INPUTSTREAM_TIMES times = {0};
+    if (GetTimes(times) && times.ptsEnd >= times.ptsBegin)
+      length = static_cast<int64_t>(times.ptsEnd - times.ptsBegin);
+  }
+
+  Log(LOGLEVEL_NOTICE, "LengthLiveStream: %lld", static_cast<long long>(length));
+
+  return length;
 }
 
 bool FFmpegArchiveStream::GetTimes(INPUTSTREAM_TIMES& times)
@@ -192,14 +198,15 @@ bool FFmpegArchiveStream::GetTimes(INPUTSTREAM_TIMES& times)
 
   times.startTime = m_timeshiftBufferStartTime;
   if (m_playbackAsLive)
-    times.ptsEnd = static_cast<int64_t>(dateTimeNow - times.startTime) * DVD_TIME_BASE;
+    times.ptsEnd = static_cast<double>(dateTimeNow - times.startTime) * DVD_TIME_BASE;
   else // it's like a video!
-    times.ptsEnd = static_cast<int64_t>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
+    times.ptsEnd = static_cast<double>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
 
   // Log(LOGLEVEL_NOTICE, "GetStreamTimes - Ch = %u \tTitle = \"%s\" \tepgTag->startTime = %ld \tepgTag->endTime = %ld",
   //           m_programmeUniqueChannelId, m_programmeTitle.c_str(), m_catchupStartTime, m_catchupEndTime);
   Log(LOGLEVEL_NOTICE, "GetStreamTimes - startTime = %ld \tptsStart = %lld \tptsBegin = %lld \tptsEnd = %lld",
-            times.startTime, times.ptsStart, times.ptsBegin, times.ptsEnd);
+            times.startTime, static_cast<long long>(times.ptsStart), static_cast<long long>(times.ptsBegin), static_cast<long long>(times.ptsEnd));
+
   return true;
 }
 
