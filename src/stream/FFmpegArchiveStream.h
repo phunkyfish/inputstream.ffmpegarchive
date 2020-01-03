@@ -14,7 +14,9 @@ class FFmpegArchiveStream : public FFmpegStream
 {
 public:
   FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
-                      time_t playbackAsLive,
+                      bool playbackAsLive,
+                      time_t programmeStartTime,
+                      time_t programmeEndTime,
                       time_t catchupStartTime,
                       time_t catchupEndTime,
                       time_t timeshiftBufferStartTime,
@@ -36,6 +38,8 @@ public:
 protected:
   void UpdateCurrentPTS() override;
 
+  time_t m_programmeStartTime = 0;
+  time_t m_programmeEndTime = 0;
   time_t m_catchupStartTime = 0;
   time_t m_catchupEndTime = 0;
   time_t m_timeshiftBufferStartTime = 0;

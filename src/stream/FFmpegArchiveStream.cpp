@@ -48,13 +48,16 @@ extern "C" {
 ***********************************************************/
 
 FFmpegArchiveStream::FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
-                                         time_t playbackAsLive,
+                                         bool playbackAsLive,
+                                         time_t programmeStartTime,
+                                         time_t programmeEndTime,
                                          time_t catchupStartTime,
                                          time_t catchupEndTime,
                                          time_t timeshiftBufferStartTime,
                                          long long timeshiftBufferOffset)
   : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0), m_playbackAsLive(playbackAsLive),
-    m_catchupStartTime(catchupStartTime),m_catchupEndTime(catchupEndTime),
+    m_programmeStartTime(programmeStartTime), m_programmeEndTime(programmeEndTime),
+    m_catchupStartTime(catchupStartTime), m_catchupEndTime(catchupEndTime),
     m_timeshiftBufferStartTime(timeshiftBufferStartTime), m_timeshiftBufferOffset(timeshiftBufferOffset)
 {
 }

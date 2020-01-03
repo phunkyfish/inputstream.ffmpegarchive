@@ -22,6 +22,8 @@ static const std::string PROGRAM_NUMBER = "inputstream.ffmpegarchive.program_num
 static const std::string IS_REALTIME_STREAM = "inputstream.ffmpegarchive.is_realtime_stream";
 static const std::string IS_ARCHIVE_STREAM = "inputstream.ffmpegarchive.is_archive_stream";
 static const std::string PLAYBACK_AS_LIVE = "inputstream.ffmpegarchive.playback_as_live";
+static const std::string PROGRAMME_START_TIME = "inputstream.ffmpegarchive.programme_start_time";
+static const std::string PROGRAMME_END_TIME = "inputstream.ffmpegarchive.programme_end_time";
 static const std::string CATCHUP_START_TIME = "inputstream.ffmpegarchive.catchup_start_time";
 static const std::string CATCHUP_END_TIME = "inputstream.ffmpegarchive.catchup_end_time";
 static const std::string TIMESHIFT_BUFFER_START_TIME = "inputstream.ffmpegarchive.timeshift_buffer_start_time";
@@ -84,6 +86,8 @@ private:
   bool m_opened;
   bool m_isArchiveStream = false;
 
+  time_t m_programmeStartTime = 0;
+  time_t m_programmeEndTime = 0;
   time_t m_catchupStartTime = 0;
   time_t m_catchupEndTime = 0;
   time_t m_timeshiftBufferStartTime = 0;

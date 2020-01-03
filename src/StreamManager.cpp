@@ -74,6 +74,16 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
     {
       m_playbackAsLive = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
     }
+    else if (PROGRAMME_START_TIME == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_programmeStartTime = static_cast<time_t>(std::stoll(tempString));
+    }
+    else if (PROGRAMME_END_TIME == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_programmeEndTime = static_cast<time_t>(std::stoll(tempString));
+    }
     else if (CATCHUP_START_TIME == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
@@ -99,7 +109,7 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
   m_streamUrl = props.m_strURL;
 
   if (m_isArchiveStream)
-    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this), m_playbackAsLive, m_catchupStartTime, m_catchupEndTime, m_timeshiftBufferStartTime, m_timeshiftBufferOffset);
+    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this), m_playbackAsLive, m_programmeStartTime, m_programmeEndTime, m_catchupStartTime, m_catchupEndTime, m_timeshiftBufferStartTime, m_timeshiftBufferOffset);
   else
     m_stream = std::make_shared<FFmpegStream>(static_cast<IManageDemuxPacket*>(this));
 
