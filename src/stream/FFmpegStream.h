@@ -98,6 +98,7 @@ protected:
   int64_t m_demuxerId;
   CCriticalSection m_critSection;
   double m_currentPts; // used for stream length estimation
+  bool m_demuxResetOpenSuccess = false;
 
 private:
   bool Open(bool streaminfo = true, bool fileinfo = false);

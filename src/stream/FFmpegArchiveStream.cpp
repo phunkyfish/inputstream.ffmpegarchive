@@ -71,6 +71,13 @@ bool FFmpegArchiveStream::Open(const std::string& streamUrl, const std::string& 
 {
   m_bIsOpening = true;
   bool ret = FFmpegStream::Open(streamUrl, mimeType, isRealTimeStream, programProperty);
+
+  // We need to make an initial seek to the correct time otherwise the stream
+  // will always start at the beginning instead of at the offset.
+  // The value of time is irrelevant here we will want to seek to SEEK_CUR
+  double temp = 0;
+  DemuxSeekTime(0, false, temp);
+
   m_bIsOpening = false;
   return ret;
 }
@@ -93,10 +100,12 @@ bool FFmpegArchiveStream::DemuxSeekTime(double time, bool backwards, double& sta
       m_seekOffset, m_currentPts, time, backwards, startpts);
 
     if (!m_bIsOpening)
+    {
       DemuxReset();
+      return m_demuxResetOpenSuccess;
+    }
 
     return true;
-    //return m_bIsOpening ? true : DemuxReset();
   }
 
   Log(LOGLEVEL_DEBUG, "Seek failed. m_currentPts = %f, time = %f, backwards = %d, startptr = %f",
@@ -199,7 +208,7 @@ bool FFmpegArchiveStream::GetTimes(INPUTSTREAM_TIMES& times)
   times.startTime = m_timeshiftBufferStartTime;
   if (m_playbackAsLive)
     times.ptsEnd = static_cast<double>(dateTimeNow - times.startTime) * DVD_TIME_BASE;
-  else // it's like a video!
+  else // it's like a video
     times.ptsEnd = static_cast<double>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
 
   // Log(LOGLEVEL_NOTICE, "GetStreamTimes - Ch = %u \tTitle = \"%s\" \tepgTag->startTime = %ld \tepgTag->endTime = %ld",
@@ -226,28 +235,3 @@ bool FFmpegArchiveStream::CanSeekStream()
 {
   return true;
 }
-
-// bool FFmpegArchiveStream::PosTime(int ms)
-// {
-//   double temp = 0;
-//   return DemuxSeekTime(static_cast<double>(ms) * 0.001f, false, temp);
-// }
-
-// int FFmpegArchiveStream::GetTotalTime()
-// {
-//   // if (m_pFormatContext->duration)
-//   //   return static_cast<int>(m_pFormatContext->duration / AV_TIME_BASE * 1000);
-//   // else
-//   //   return std::time(nullptr) - static_cast<int>(m_startTime);
-
-// //  return 145 * 60;
-//   //return 25 * 60;
-//   return std::time(nullptr) - static_cast<int>(m_timeshiftBufferStartTime) * 1000;
-// }
-
-// int FFmpegArchiveStream::GetTime()
-// {
-//   return std::time(nullptr) - static_cast<int>(m_timeshiftBufferStartTime) * 1000;
-//   //return static_cast<int>(m_currentPts / DVD_TIME_BASE * 1000);
-//   //return 16 * 60;//static_cast<int>(m_currentPts / DVD_TIME_BASE * 1000);
-// }

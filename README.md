@@ -1,6 +1,8 @@
 # inputstream.ffmpegarchive addon for Kodi
 
-This is a [Kodi](http://kodi.tv) input stream addon for FFmpeg Archive.
+This is a [Kodi](http://kodi.tv) input stream addon for streams that can be opened by FFmpeg's libavformat, such as plain TS, HLS and DASH streams. Note that the only DASH streams supported are those without DRM.
+
+The addon also has support for Archive/Catchup services where there is a replay windows (usually in days) and can timeshift across that span.
 
 [![Build Status](https://travis-ci.org/xbmc/inputstream.ffmpegarchive.svg?branch=master)](https://travis-ci.org/xbmc/inputstream.ffmpegarchive)
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/inputstream.ffmpegarchive?svg=true)](https://ci.appveyor.com/project/xbmc/inputstream-ffmpegarchive)
@@ -44,6 +46,48 @@ Note that the steps in the following section need to be performed before the add
 2. `./build-install-mac.sh ../xbmc-addon`
 
 If you would prefer to run the rebuild steps manually instead of using the above helper script check the appendix [here](#manual-steps-to-rebuild-the-addon-on-macosx)
+
+## Using the addon
+
+The adding can be accessed like any other inputstream in Kodi. The following example will show how to manually choose this addon for playback when using IPTV Simple Client with the following entry in the M3U file.
+
+```
+#KODIPROP:inputstreamclass=inputstream.ffmpegarchive
+#KODIPROP:inputstream.ffmpegarchive.mime_type=video/mp2t
+#KODIPROP:inputstream.ffmpegarchive.is_realtime_stream=true
+#KODIPROP:inputstream.ffmpegarchive.is_archive_stream=false
+#EXTINF:-1,MyChannel
+http://127.0.0.1:3002/mystream.ts
+```
+
+Note that the appropriate mime type should always be set. Here are the some common ones:
+- TS: `video/mp2t`
+- HLS: `application/x-mpegURL` or `application/vnd.apple.mpegurl`
+- Dash: `application/dash+xml`
+
+If enabling archive/catchup support there are a number of other variables that needs to be set as shown in this example.
+
+```
+#KODIPROP:inputstreamclass=inputstream.ffmpegarchive
+#KODIPROP:inputstream.ffmpegarchive.mime_type=application/x-mpegURL
+#KODIPROP:inputstream.ffmpegarchive.is_realtime_stream=true
+#KODIPROP:inputstream.ffmpegarchive.is_archive_stream=true
+#KODIPROP:inputstream.ffmpegarchive.playback_as_live=true
+#KODIPROP:inputstream.ffmpegarchive.catchup_start_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.catchup_end_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.timeshift_buffer_start_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.timeshift_buffer_offset=1111111
+#EXTINF:-1,MyChannel
+http://127.0.0.1:3002/mystream.m3u8
+```
+
+- `playback_as_live`: Should the playback be considerd as live tv, allowing skipping from one programme to the next over the entire catchup window, if so set to `true`. Otherwise set to `false` to treat all programmes as videos.
+- `catchup_start_time`: The unix time in seconds of the start of catchup window.
+- `catchup_end_time`: The unix time in seconds of the end of catchup window.
+- `timeshift_buffer_start_time`: The unix time in seconds of the start of the timeshift window.
+- `timeshift_buffer_offset`: The offset from the timeshift start time where playback should begin.
+
+Note: setting `playback_as_live` to `true` only makes sense when the catchup start and end times are set to the size of the catchup windows (e.g. 3 days). If the catchup start and end times are set to the programme times then `playback_as_live` will have little effect.
 
 ## Appendix
 

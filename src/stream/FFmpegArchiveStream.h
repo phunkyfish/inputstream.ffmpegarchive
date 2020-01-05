@@ -31,9 +31,6 @@ public:
   virtual int64_t SeekStream(int64_t position, int whence = SEEK_SET) override;
   virtual int64_t LengthStream() override;
   virtual bool GetTimes(INPUTSTREAM_TIMES& times) override;
-  // virtual bool PosTime(int ms) override;
-  // virtual int GetTotalTime() override;
-  // virtual int GetTime() override;
 
   virtual bool CanPauseStream() override;
   virtual bool CanSeekStream() override;

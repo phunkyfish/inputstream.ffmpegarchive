@@ -229,9 +229,10 @@ bool FFmpegStream::OpenStream(int streamid)
 
 void FFmpegStream::DemuxReset()
 {
+  m_demuxResetOpenSuccess = false;
   Dispose();
   m_opened = false;
-  Open(m_streaminfo);
+  m_demuxResetOpenSuccess = Open(m_streaminfo);
 }
 
 void FFmpegStream::DemuxAbort()
