@@ -192,7 +192,7 @@ bool CThread::SetPriority(const int iPriority)
     if (setpriority(PRIO_PROCESS, m_lwpId, newNice) == 0)
       bReturn = true;
     else
-      Log(LOGERROR, "%s: error %s", __FUNCTION__, strerror(errno));
+      Log(LOGLEVEL_ERROR, "%s: error %s", __FUNCTION__, strerror(errno));
   }
 #endif
 

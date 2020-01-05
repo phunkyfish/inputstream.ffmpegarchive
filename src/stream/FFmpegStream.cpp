@@ -1617,7 +1617,7 @@ DemuxStream* FFmpegStream::AddStream(int streamIdx)
         //     {
         //       pStream->codecpar->codec_id = AV_CODEC_ID_MPEG2VIDEO;
         //       pStream->codecpar->codec_tag = MKTAG('M','P','2','V');
-        //       CLog::Log(LOGERROR, "%s - AV_CODEC_ID_PROBE detected, forcing AV_CODEC_ID_MPEG2VIDEO", __FUNCTION__);
+        //       CLog::Log(LOGLEVEL_ERROR, "%s - AV_CODEC_ID_PROBE detected, forcing AV_CODEC_ID_MPEG2VIDEO", __FUNCTION__);
         //     }
         //   }
         // }
@@ -1752,9 +1752,9 @@ DemuxStream* FFmpegStream::AddStream(int streamIdx)
 //       if (it != m_streams.end())
 //       {
 //         if (stream->codec == AV_CODEC_ID_AC3 && it->second->codec == AV_CODEC_ID_TRUEHD)
-//           CLog::Log(LOGDEBUG, "CDVDDemuxFFmpeg::AddStream - discarding duplicated bluray stream (truehd ac3 core)");
+//           CLog::Log(LOGLEVEL_DEBUG, "CDVDDemuxFFmpeg::AddStream - discarding duplicated bluray stream (truehd ac3 core)");
 //         else
-//           CLog::Log(LOGDEBUG, "CDVDDemuxFFmpeg::AddStream - discarding duplicate bluray stream %s", stream->codecName);
+//           CLog::Log(LOGLEVEL_DEBUG, "CDVDDemuxFFmpeg::AddStream - discarding duplicate bluray stream %s", stream->codecName);
 
 //         pStream->discard = AVDISCARD_ALL;
 //         delete stream;
