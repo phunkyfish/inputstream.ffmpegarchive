@@ -47,7 +47,7 @@ CInputStreamArchive::~CInputStreamArchive()
 
 bool CInputStreamArchive::Open(INPUTSTREAM& props)
 {
-  kodi::Log(ADDON_LOG_NOTICE, "InputStream.ffmpegarchive: OpenStream()");
+  kodi::Log(ADDON_LOG_NOTICE, "InputStream.ffmpegarchive: OpenStream() - Num Props: %d", props.m_nCountInfoValues);
   std::string tempString;
 
   for (size_t i = 0; i < props.m_nCountInfoValues; ++i)
@@ -66,9 +66,9 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
     {
       m_isRealTimeStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
     }
-    else if (IS_ARCHIVE_STREAM == props.m_ListItemProperties[i].m_strKey)
+    else if (IS_CATCHUP_STREAM == props.m_ListItemProperties[i].m_strKey)
     {
-      m_isArchiveStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
+      m_isCatchupStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
     }
     else if (PLAYBACK_AS_LIVE == props.m_ListItemProperties[i].m_strKey)
     {
@@ -84,32 +84,38 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
       tempString = props.m_ListItemProperties[i].m_strValue;
       m_programmeEndTime = static_cast<time_t>(std::stoll(tempString));
     }
-    else if (CATCHUP_START_TIME == props.m_ListItemProperties[i].m_strKey)
+    else if (CATCHUP_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
-      m_catchupStartTime = static_cast<time_t>(std::stoll(tempString));
+      m_catchupBufferStartTime = static_cast<time_t>(std::stoll(tempString));
     }
-    else if (CATCHUP_END_TIME == props.m_ListItemProperties[i].m_strKey)
+    else if (CATCHUP_BUFFER_END_TIME == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
-      m_catchupEndTime = static_cast<time_t>(std::stoll(tempString));
+      m_catchupBufferEndTime = static_cast<time_t>(std::stoll(tempString));
     }
-    else if (TIMESHIFT_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
+    else if (CATCHUP_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
-      m_timeshiftBufferStartTime = static_cast<time_t>(std::stoll(tempString));
+      m_catchupBufferStartTime = static_cast<time_t>(std::stoll(tempString));
     }
-    else if (TIMESHIFT_BUFFER_OFFSET == props.m_ListItemProperties[i].m_strKey)
+    else if (CATCHUP_BUFFER_OFFSET == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
-      m_timeshiftBufferOffset = std::stoll(tempString);
+      m_catchupBufferOffset = std::stoll(tempString);
     }
   }
 
   m_streamUrl = props.m_strURL;
 
-  if (m_isArchiveStream)
-    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this), m_playbackAsLive, m_programmeStartTime, m_programmeEndTime, m_catchupStartTime, m_catchupEndTime, m_timeshiftBufferStartTime, m_timeshiftBufferOffset);
+  if (m_isCatchupStream)
+    m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this),
+                                                     m_playbackAsLive,
+                                                     m_programmeStartTime,
+                                                     m_programmeEndTime,
+                                                     m_catchupBufferStartTime,
+                                                     m_catchupBufferEndTime,
+                                                     m_catchupBufferOffset);
   else
     m_stream = std::make_shared<FFmpegStream>(static_cast<IManageDemuxPacket*>(this));
 

@@ -51,14 +51,13 @@ FFmpegArchiveStream::FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
                                          bool playbackAsLive,
                                          time_t programmeStartTime,
                                          time_t programmeEndTime,
-                                         time_t catchupStartTime,
-                                         time_t catchupEndTime,
-                                         time_t timeshiftBufferStartTime,
-                                         long long timeshiftBufferOffset)
+                                         time_t catchupBufferStartTime,
+                                         time_t catchupBufferEndTime,
+                                         long long catchupBufferOffset)
   : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0), m_playbackAsLive(playbackAsLive),
     m_programmeStartTime(programmeStartTime), m_programmeEndTime(programmeEndTime),
-    m_catchupStartTime(catchupStartTime), m_catchupEndTime(catchupEndTime),
-    m_timeshiftBufferStartTime(timeshiftBufferStartTime), m_timeshiftBufferOffset(timeshiftBufferOffset)
+    m_catchupBufferStartTime(catchupBufferStartTime), m_catchupBufferEndTime(catchupBufferEndTime),
+    m_catchupBufferOffset(catchupBufferOffset)
 {
 }
 
@@ -143,7 +142,7 @@ void FFmpegArchiveStream::GetCapabilities(INPUTSTREAM_CAPABILITIES& caps)
 int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET */)
 {
   int64_t ret = -1;
-  if (m_catchupStartTime > 0)
+  if (m_catchupBufferStartTime > 0)
   {
     Log(LOGLEVEL_NOTICE, "SeekLiveStream - iPosition = %lld, iWhence = %d", position, whence);
     const time_t timeNow = time(0);
@@ -151,25 +150,25 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
     {
       case SEEK_SET:
       {
-        Log(LOGLEVEL_NOTICE, "SeekLiveStream - SeekSet");
+        Log(LOGLEVEL_NOTICE, "SeekLiveStream - SeekSet: %lld", static_cast<long long>(position));
         position += 500;
         position /= 1000;
-        if (m_catchupStartTime + position < timeNow - 10)
+        if (m_catchupBufferStartTime + position < timeNow - 10)
         {
           ret = position;
-          m_timeshiftBufferOffset = position;
+          m_catchupBufferOffset = position;
         }
         else
         {
-          ret = timeNow - m_catchupStartTime;
-          m_timeshiftBufferOffset = ret;
+          ret = timeNow - m_catchupBufferStartTime;
+          m_catchupBufferOffset = ret;
         }
         ret *= DVD_TIME_BASE;
       }
       break;
       case SEEK_CUR:
       {
-        int64_t offset = m_timeshiftBufferOffset;
+        int64_t offset = m_catchupBufferOffset;
         //Log(LOGLEVEL_NOTICE, "SeekLiveStream - timeNow = %d, startTime = %d, iTvgShift = %d, offset = %d", timeNow, m_catchupStartTime, m_programmeChannelTvgShift, offset);
         ret = offset * DVD_TIME_BASE;
       }
@@ -185,7 +184,7 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
 int64_t FFmpegArchiveStream::LengthStream()
 {
   int64_t length = -1;
-  if (m_catchupStartTime > 0 && m_catchupEndTime >= m_catchupStartTime)
+  if (m_catchupBufferStartTime > 0 && m_catchupBufferEndTime >= m_catchupBufferStartTime)
   {
     INPUTSTREAM_TIMES times = {0};
     if (GetTimes(times) && times.ptsEnd >= times.ptsBegin)
@@ -199,20 +198,20 @@ int64_t FFmpegArchiveStream::LengthStream()
 
 bool FFmpegArchiveStream::GetTimes(INPUTSTREAM_TIMES& times)
 {
-  if (m_timeshiftBufferStartTime == 0)
+  if (m_catchupBufferStartTime == 0)
     return false;
 
   times = {0};
   const time_t dateTimeNow = time(0);
 
-  times.startTime = m_timeshiftBufferStartTime;
+  times.startTime = m_catchupBufferStartTime;
   if (m_playbackAsLive)
     times.ptsEnd = static_cast<double>(dateTimeNow - times.startTime) * DVD_TIME_BASE;
   else // it's like a video
-    times.ptsEnd = static_cast<double>(std::min(dateTimeNow, m_catchupEndTime) - times.startTime) * DVD_TIME_BASE;
+    times.ptsEnd = static_cast<double>(std::min(dateTimeNow, m_catchupBufferEndTime) - times.startTime) * DVD_TIME_BASE;
 
   // Log(LOGLEVEL_NOTICE, "GetStreamTimes - Ch = %u \tTitle = \"%s\" \tepgTag->startTime = %ld \tepgTag->endTime = %ld",
-  //           m_programmeUniqueChannelId, m_programmeTitle.c_str(), m_catchupStartTime, m_catchupEndTime);
+  //           m_programmeUniqueChannelId, m_programmeTitle.c_str(), m_catchupBufferStartTime, m_catchupBufferEndTime);
   Log(LOGLEVEL_NOTICE, "GetStreamTimes - startTime = %ld \tptsStart = %lld \tptsBegin = %lld \tptsEnd = %lld",
             times.startTime, static_cast<long long>(times.ptsStart), static_cast<long long>(times.ptsBegin), static_cast<long long>(times.ptsEnd));
 

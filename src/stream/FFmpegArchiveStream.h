@@ -17,10 +17,9 @@ public:
                       bool playbackAsLive,
                       time_t programmeStartTime,
                       time_t programmeEndTime,
-                      time_t catchupStartTime,
-                      time_t catchupEndTime,
-                      time_t timeshiftBufferStartTime,
-                      long long timeshiftBufferOffset);
+                      time_t catchupBufferStartTime,
+                      time_t catchupBufferEndTime,
+                      long long catchupBufferOffset);
   ~FFmpegArchiveStream();
 
   virtual bool Open(const std::string& streamUrl, const std::string& mimeType, bool isRealTimeStream, const std::string& programProperty) override;
@@ -40,10 +39,9 @@ protected:
 
   time_t m_programmeStartTime = 0;
   time_t m_programmeEndTime = 0;
-  time_t m_catchupStartTime = 0;
-  time_t m_catchupEndTime = 0;
-  time_t m_timeshiftBufferStartTime = 0;
-  long long m_timeshiftBufferOffset = 0;
+  time_t m_catchupBufferStartTime = 0;
+  time_t m_catchupBufferEndTime = 0;
+  long long m_catchupBufferOffset = 0;
   bool m_playbackAsLive = false;
 
   bool m_bIsOpening;
