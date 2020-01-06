@@ -168,7 +168,9 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
         }
         else
         {
-          ret = timeNow - m_catchupBufferStartTime;
+          // TODO we appear to require an extra 10 seconds less to skip hitting EOF
+          // There must be a cleaner solutiom than this.
+          ret = timeNow - m_catchupBufferStartTime - 10;
           m_catchupBufferOffset = ret;
         }
         ret *= DVD_TIME_BASE;
