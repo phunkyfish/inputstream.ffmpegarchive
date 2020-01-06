@@ -54,8 +54,9 @@ The adding can be accessed like any other inputstream in Kodi. The following exa
 ```
 #KODIPROP:inputstreamclass=inputstream.ffmpegarchive
 #KODIPROP:inputstream.ffmpegarchive.mime_type=video/mp2t
+#KODIPROP:inputstream.ffmpegarchive.program_number=2154
 #KODIPROP:inputstream.ffmpegarchive.is_realtime_stream=true
-#KODIPROP:inputstream.ffmpegarchive.is_archive_stream=false
+#KODIPROP:inputstream.ffmpegarchive.is_catchup_stream=false
 #EXTINF:-1,MyChannel
 http://127.0.0.1:3002/mystream.ts
 ```
@@ -65,27 +66,39 @@ Note that the appropriate mime type should always be set. Here are the some comm
 - HLS: `application/x-mpegURL` or `application/vnd.apple.mpegurl`
 - Dash: `application/dash+xml`
 
+The field `program_number` can be used to indicate the Program ID to use for TS streams.
+
 If enabling archive/catchup support there are a number of other variables that needs to be set as shown in this example.
 
 ```
 #KODIPROP:inputstreamclass=inputstream.ffmpegarchive
 #KODIPROP:inputstream.ffmpegarchive.mime_type=application/x-mpegURL
+#KODIPROP:inputstream.ffmpegarchive.default_url=http://mysite.com/streamX
 #KODIPROP:inputstream.ffmpegarchive.is_realtime_stream=true
-#KODIPROP:inputstream.ffmpegarchive.is_archive_stream=true
+#KODIPROP:inputstream.ffmpegarchive.is_catchup_stream=true
 #KODIPROP:inputstream.ffmpegarchive.playback_as_live=true
-#KODIPROP:inputstream.ffmpegarchive.catchup_start_time=1111111
-#KODIPROP:inputstream.ffmpegarchive.catchup_end_time=1111111
-#KODIPROP:inputstream.ffmpegarchive.timeshift_buffer_start_time=1111111
-#KODIPROP:inputstream.ffmpegarchive.timeshift_buffer_offset=1111111
+#KODIPROP:inputstream.ffmpegarchive.programme_start_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.programme_end_time=2111111
+#KODIPROP:inputstream.ffmpegarchive.catchup_url_format_string=http://mysite.com/streamX?cutv={Y}-{m}-{d}T{H}:{M}:{S}
+#KODIPROP:inputstream.ffmpegarchive.catchup_buffer_start_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.catchup_buffer_end_time=1111111
+#KODIPROP:inputstream.ffmpegarchive.catchup_buffer_offset=1111111
+#KODIPROP:inputstream.ffmpegarchive.timezone_shift=0
+#KODIPROP:inputstream.ffmpegarchive.default_programme_duration=3600
 #EXTINF:-1,MyChannel
 http://127.0.0.1:3002/mystream.m3u8
 ```
 
+- `default_url`: The URL to use if a catchup URL cannot be generated for any reason.
 - `playback_as_live`: Should the playback be considerd as live tv, allowing skipping from one programme to the next over the entire catchup window, if so set to `true`. Otherwise set to `false` to treat all programmes as videos.
-- `catchup_start_time`: The unix time in seconds of the start of catchup window.
-- `catchup_end_time`: The unix time in seconds of the end of catchup window.
-- `timeshift_buffer_start_time`: The unix time in seconds of the start of the timeshift window.
-- `timeshift_buffer_offset`: The offset from the timeshift start time where playback should begin.
+- `programme_start_time`: The unix time in seconds of the start of the programme being streamed - optional.
+- `programme_end_time`: The unix time in seconds of the end of the programme being streamed - optional.
+- `catchup_url_format_string`: The URL including format specifiers to use to generate catchup URLs when seeking the stream.
+- `catchup_buffer_start_time`: The unix time in seconds of the start of catchup window.
+- `catchup_buffer_end_time`: The unix time in seconds of the end of catchup window.
+- `catchup_buffer_offset`: The offset from the catchup buffer start time where playback should begin.
+- `timezone_shift`: The value in seconds to shift the catchup times by for your timezone. Valid values range from -43200 to 50400 (from -12 hours to +14 hours).
+- `default_programme_duration`: The the programme duration is unknown use this default value in seconds instead. If this value is not provided 3600 will be used.
 
 Note: setting `playback_as_live` to `true` only makes sense when the catchup start and end times are set to the size of the catchup windows (e.g. 3 days). If the catchup start and end times are set to the programme times then `playback_as_live` will have little effect.
 

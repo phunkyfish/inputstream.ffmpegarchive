@@ -62,6 +62,10 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
     {
       m_programProperty = props.m_ListItemProperties[i].m_strValue;
     }
+    else if (DEFAULT_URL == props.m_ListItemProperties[i].m_strKey)
+    {
+      m_defaultUrl = props.m_ListItemProperties[i].m_strValue;
+    }
     else if (IS_REALTIME_STREAM == props.m_ListItemProperties[i].m_strKey)
     {
       m_isRealTimeStream = StringUtils::EqualsNoCase(props.m_ListItemProperties[i].m_strValue, "true");
@@ -84,6 +88,10 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
       tempString = props.m_ListItemProperties[i].m_strValue;
       m_programmeEndTime = static_cast<time_t>(std::stoll(tempString));
     }
+    else if (CATCHUP_URL_FORMAT_STRING == props.m_ListItemProperties[i].m_strKey)
+    {
+      m_catchupUrlFormatString = props.m_ListItemProperties[i].m_strValue;
+    }
     else if (CATCHUP_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
@@ -94,15 +102,20 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
       tempString = props.m_ListItemProperties[i].m_strValue;
       m_catchupBufferEndTime = static_cast<time_t>(std::stoll(tempString));
     }
-    else if (CATCHUP_BUFFER_START_TIME == props.m_ListItemProperties[i].m_strKey)
-    {
-      tempString = props.m_ListItemProperties[i].m_strValue;
-      m_catchupBufferStartTime = static_cast<time_t>(std::stoll(tempString));
-    }
     else if (CATCHUP_BUFFER_OFFSET == props.m_ListItemProperties[i].m_strKey)
     {
       tempString = props.m_ListItemProperties[i].m_strValue;
       m_catchupBufferOffset = std::stoll(tempString);
+    }
+    else if (TIMEZONE_SHIFT == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_timezoneShiftSecs = std::stoi(tempString);
+    }
+    else if (DEFAULT_PROGRAMME_DURATION == props.m_ListItemProperties[i].m_strKey)
+    {
+      tempString = props.m_ListItemProperties[i].m_strValue;
+      m_defaultProgrammeDurationSecs = std::stoi(tempString);
     }
   }
 
@@ -110,12 +123,16 @@ bool CInputStreamArchive::Open(INPUTSTREAM& props)
 
   if (m_isCatchupStream)
     m_stream = std::make_shared<FFmpegArchiveStream>(static_cast<IManageDemuxPacket*>(this),
+                                                     m_defaultUrl,
                                                      m_playbackAsLive,
                                                      m_programmeStartTime,
                                                      m_programmeEndTime,
+                                                     m_catchupUrlFormatString,
                                                      m_catchupBufferStartTime,
                                                      m_catchupBufferEndTime,
-                                                     m_catchupBufferOffset);
+                                                     m_catchupBufferOffset,
+                                                     m_timezoneShiftSecs,
+                                                     m_defaultProgrammeDurationSecs);
   else
     m_stream = std::make_shared<FFmpegStream>(static_cast<IManageDemuxPacket*>(this));
 

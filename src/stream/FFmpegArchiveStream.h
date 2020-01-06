@@ -14,12 +14,16 @@ class FFmpegArchiveStream : public FFmpegStream
 {
 public:
   FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
+                      std::string& defaultUrl,
                       bool playbackAsLive,
                       time_t programmeStartTime,
                       time_t programmeEndTime,
+                      std::string& catchupUrlFormatString,
                       time_t catchupBufferStartTime,
                       time_t catchupBufferEndTime,
-                      long long catchupBufferOffset);
+                      long long catchupBufferOffset,
+                      int timezoneShift,
+                      int defaultProgrammeDuration);
   ~FFmpegArchiveStream();
 
   virtual bool Open(const std::string& streamUrl, const std::string& mimeType, bool isRealTimeStream, const std::string& programProperty) override;
@@ -37,12 +41,18 @@ public:
 protected:
   void UpdateCurrentPTS() override;
 
+  std::string GetUpdatedCatchupUrl() const;
+
+  bool m_playbackAsLive = false;
+  std::string m_defaultUrl;
   time_t m_programmeStartTime = 0;
   time_t m_programmeEndTime = 0;
+  std::string m_catchupUrlFormatString;
   time_t m_catchupBufferStartTime = 0;
   time_t m_catchupBufferEndTime = 0;
   long long m_catchupBufferOffset = 0;
-  bool m_playbackAsLive = false;
+  int m_timezoneShift = 0;
+  int m_defaultProgrammeDuration = 0;
 
   bool m_bIsOpening;
   double m_seekOffset;

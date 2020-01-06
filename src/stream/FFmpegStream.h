@@ -99,6 +99,7 @@ protected:
   CCriticalSection m_critSection;
   double m_currentPts; // used for stream length estimation
   bool m_demuxResetOpenSuccess = false;
+  std::string m_streamUrl;
 
 private:
   bool Open(bool streaminfo = true, bool fileinfo = false);
@@ -167,7 +168,6 @@ private:
   bool m_seekToKeyFrame = false;
   double m_startTime = 0;
 
-  std::string m_streamUrl;
   std::string m_mimeType;
   std::string m_programProperty;
   bool m_isRealTimeStream;

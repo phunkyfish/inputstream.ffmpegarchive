@@ -19,14 +19,18 @@
 
 static const std::string MIME_TYPE = "inputstream.ffmpegarchive.mime_type";
 static const std::string PROGRAM_NUMBER = "inputstream.ffmpegarchive.program_number";
+static const std::string DEFAULT_URL = "inputstream.ffmpegarchive.default_url";
 static const std::string IS_REALTIME_STREAM = "inputstream.ffmpegarchive.is_realtime_stream";
 static const std::string IS_CATCHUP_STREAM = "inputstream.ffmpegarchive.is_catchup_stream";
 static const std::string PLAYBACK_AS_LIVE = "inputstream.ffmpegarchive.playback_as_live";
 static const std::string PROGRAMME_START_TIME = "inputstream.ffmpegarchive.programme_start_time";
 static const std::string PROGRAMME_END_TIME = "inputstream.ffmpegarchive.programme_end_time";
+static const std::string CATCHUP_URL_FORMAT_STRING = "inputstream.ffmpegarchive.catchup_url_format_string";
 static const std::string CATCHUP_BUFFER_START_TIME = "inputstream.ffmpegarchive.catchup_buffer_start_time";
 static const std::string CATCHUP_BUFFER_END_TIME = "inputstream.ffmpegarchive.catchup_buffer_end_time";
 static const std::string CATCHUP_BUFFER_OFFSET = "inputstream.ffmpegarchive.catchup_buffer_offset";
+static const std::string TIMEZONE_SHIFT = "inputstream.ffmpegarchive.timezone_shift";
+static const std::string DEFAULT_PROGRAMME_DURATION = "inputstream.ffmpegarchive.default_programme_duration";
 
 class CInputStreamArchive
   : public kodi::addon::CInstanceInputStream, IManageDemuxPacket
@@ -78,19 +82,24 @@ public:
 protected:
 
 private:
+  bool m_opened;
+
   std::string m_streamUrl;
   std::string m_mimeType;
   std::string m_programProperty;
+  std::string m_defaultUrl;
   bool m_isRealTimeStream;
-  bool m_opened;
   bool m_isCatchupStream = false;
 
+  bool m_playbackAsLive = false;
   time_t m_programmeStartTime = 0;
   time_t m_programmeEndTime = 0;
+  std::string m_catchupUrlFormatString;
   time_t m_catchupBufferStartTime = 0;
   time_t m_catchupBufferEndTime = 0;
   long long m_catchupBufferOffset = 0;
-  bool m_playbackAsLive = false;
+  int m_timezoneShiftSecs = 0;
+  int m_defaultProgrammeDurationSecs = 3600; //One hour
 
   int m_videoWidth;
   int m_videoHeight;

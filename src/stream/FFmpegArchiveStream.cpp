@@ -39,6 +39,8 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
+#include <regex>
+
 #include "platform/posix/XTimeUtils.h"
 
 #include <p8-platform/util/StringUtils.h>
@@ -48,16 +50,22 @@ extern "C" {
 ***********************************************************/
 
 FFmpegArchiveStream::FFmpegArchiveStream(IManageDemuxPacket* demuxPacketManager,
+                                         std::string& defaultUrl,
                                          bool playbackAsLive,
                                          time_t programmeStartTime,
                                          time_t programmeEndTime,
+                                         std::string& catchupUrlFormatString,
                                          time_t catchupBufferStartTime,
                                          time_t catchupBufferEndTime,
-                                         long long catchupBufferOffset)
-  : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0), m_playbackAsLive(playbackAsLive),
+                                         long long catchupBufferOffset,
+                                         int timezoneShift,
+                                         int defaultProgrammeDuration)
+  : FFmpegStream(demuxPacketManager), m_bIsOpening(false), m_seekOffset(0),
+    m_defaultUrl(defaultUrl), m_playbackAsLive(playbackAsLive),
     m_programmeStartTime(programmeStartTime), m_programmeEndTime(programmeEndTime),
+    m_catchupUrlFormatString(catchupUrlFormatString),
     m_catchupBufferStartTime(catchupBufferStartTime), m_catchupBufferEndTime(catchupBufferEndTime),
-    m_catchupBufferOffset(catchupBufferOffset)
+    m_catchupBufferOffset(catchupBufferOffset), m_timezoneShift(timezoneShift), m_defaultProgrammeDuration(defaultProgrammeDuration)
 {
 }
 
@@ -164,6 +172,8 @@ int64_t FFmpegArchiveStream::SeekStream(int64_t position, int whence /* SEEK_SET
           m_catchupBufferOffset = ret;
         }
         ret *= DVD_TIME_BASE;
+
+        m_streamUrl = GetUpdatedCatchupUrl();
       }
       break;
       case SEEK_CUR:
@@ -233,4 +243,108 @@ bool FFmpegArchiveStream::CanPauseStream()
 bool FFmpegArchiveStream::CanSeekStream()
 {
   return true;
+}
+
+namespace
+{
+
+void FormatOffset(time_t tTime, std::string &urlFormatString)
+{
+  const std::string regexStr = ".*(\\{offset:(\\d+)\\}).*";
+  std::cmatch mr;
+  std::regex rx(regexStr);
+  if (std::regex_match(urlFormatString.c_str(), mr, rx) && mr.length() >= 3)
+  {
+    std::string offsetExp = mr[1].first;
+    std::string second = mr[1].second;
+    if (second.length() > 0)
+      offsetExp = offsetExp.erase(offsetExp.find(second));
+    std::string dividerStr = mr[2].first;
+    second = mr[2].second;
+    if (second.length() > 0)
+      dividerStr = dividerStr.erase(dividerStr.find(second));
+
+    const time_t divider = stoi(dividerStr);
+    if (divider != 0)
+    {
+      time_t offset = tTime / divider;
+      if (offset < 0)
+        offset = 0;
+      urlFormatString.replace(urlFormatString.find(offsetExp), offsetExp.length(), std::to_string(offset));
+    }
+  }
+}
+
+void FormatTime(const char ch, const struct tm *pTime, std::string &urlFormatString)
+{
+  char str[] = { '{', ch, '}', 0 };
+  auto pos = urlFormatString.find(str);
+  if (pos != std::string::npos)
+  {
+    char buff[256], timeFmt[3];
+    std::snprintf(timeFmt, sizeof(timeFmt), "%%%c", ch);
+    std::strftime(buff, sizeof(buff), timeFmt, pTime);
+    if (std::strlen(buff) > 0)
+      urlFormatString.replace(pos, 3, buff);
+  }
+}
+
+void FormatUtc(const char *str, time_t tTime, std::string &urlFormatString)
+{
+  auto pos = urlFormatString.find(str);
+  if (pos != std::string::npos)
+  {
+    char buff[256];
+    std::snprintf(buff, sizeof(buff), "%lu", tTime);
+    urlFormatString.replace(pos, std::strlen(str), buff);
+  }
+}
+
+std::string FormatDateTime(time_t dateTimeEpg, time_t duration, const std::string &urlFormatString)
+{
+  std::string fomrattedUrl = urlFormatString;
+
+  const time_t dateTimeNow = std::time(0);
+  tm* dateTime = std::localtime(&dateTimeEpg);
+
+  FormatTime('Y', dateTime, fomrattedUrl);
+  FormatTime('m', dateTime, fomrattedUrl);
+  FormatTime('d', dateTime, fomrattedUrl);
+  FormatTime('H', dateTime, fomrattedUrl);
+  FormatTime('M', dateTime, fomrattedUrl);
+  FormatTime('S', dateTime, fomrattedUrl);
+  FormatUtc("{utc}", dateTimeEpg, fomrattedUrl);
+  FormatUtc("${start}", dateTimeEpg, fomrattedUrl);
+  FormatUtc("{utcend}", dateTimeEpg + duration, fomrattedUrl);
+  FormatUtc("${end}", dateTimeEpg + duration, fomrattedUrl);
+  FormatUtc("{lutc}", dateTimeNow, fomrattedUrl);
+  FormatUtc("{duration}", duration, fomrattedUrl);
+  FormatOffset(dateTimeNow - dateTimeEpg, fomrattedUrl);
+
+  Log(LOGLEVEL_NOTICE, "CArchiveConfig::FormatDateTime - \"%s\"", fomrattedUrl.c_str());
+
+  return fomrattedUrl;
+}
+
+} // unnamed namespace
+
+std::string FFmpegArchiveStream::GetUpdatedCatchupUrl() const
+{
+  time_t timeNow = time(0);
+  time_t offset = m_catchupBufferStartTime + m_catchupBufferOffset;
+
+  if (m_catchupBufferStartTime > 0 && offset < (timeNow - 5))
+  {
+    time_t duration = m_defaultProgrammeDuration;
+    if (m_programmeStartTime > 0 && m_programmeStartTime < m_programmeEndTime)
+      duration = m_programmeEndTime - m_programmeStartTime;
+
+    Log(LOGLEVEL_NOTICE, "Offset Time - \"%lld\" - %s", static_cast<long long>(offset), m_catchupUrlFormatString.c_str());
+
+    std::string catchupUrl = FormatDateTime(offset - m_timezoneShift, duration, m_catchupUrlFormatString);
+    if (!catchupUrl.empty())
+      return catchupUrl;
+  }
+
+  return m_defaultUrl;
 }
